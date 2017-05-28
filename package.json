@@ -4,7 +4,7 @@
   "description": "Conceptual Implementation of EventEmitter based Flux.",
   "main": "lib/flumpt.js",
   "scripts": {
-    "prepublish": "babel src --out-dir lib",
+    "prepare": "babel src --out-dir lib",
     "test": "babel-node test/flumpt-test.js"
   },
   "author": "mizchi",
@@ -16,17 +16,16 @@
     "test": "test"
   },
   "devDependencies": {
-    "babel-cli": "^6.3.15",
+    "babel-cli": "^6.24.1",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.3.13",
     "babel-polyfill": "^6.3.14",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-react": "^6.3.13",
-    "babel-preset-stage-2": "^6.3.13",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "babelify": "^7.3.0",
-    "browserify": "^14.1.0",
-    "react": "^15.1.0",
-    "react-dom": "^15.1.0"
+    "browserify": "^14.4.0",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4"
   },
   "repository": {
     "type": "git",
@@ -37,7 +36,7 @@
   },
   "homepage": "https://github.com/mizchi/flumpt#readme",
   "dependencies": {
-    "promised-reducer": "^0.1.0",
-    "prop-types": "^15.5.8"
+    "promised-reducer": "^0.2.0",
+    "prop-types": "^15.5.10"
   }
 }
