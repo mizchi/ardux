@@ -72,6 +72,17 @@ test('subscribe: emit by sync', async t => {
   await store.dispatch({ type: 'increment' })
 })
 
+test('subscribe: unsubscribe', async t => {
+  t.plan(1)
+  const store = await createStore(reducer)
+  const unsubscribe = store.subscribe(_state => {
+    t.pass()
+  }, false)
+  await store.dispatch({ type: 'increment' })
+  unsubscribe()
+  await store.dispatch({ type: 'increment' })
+})
+
 test('subscribe: fold async action and emit once', async t => {
   t.plan(1)
   const store = await createStore(reducer)

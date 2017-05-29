@@ -35,6 +35,13 @@ export default async (reducer: Function, initialState?: any) => {
       if (emitOnInit) {
         emit()
       }
+
+      return () => {
+        const index = _listeners.findIndex(i => i === fn)
+        if (index > -1) {
+          _listeners.splice(index, 1)
+        }
+      }
     },
     dispose() {
       if (_currentPromise) {
