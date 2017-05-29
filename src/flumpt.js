@@ -1,103 +1,200 @@
 /* @flow */
 import React from 'react'
 import PropTypes from 'prop-types'
-import PromisedReducer from 'promised-reducer'
+import Updater from './updater'
 
-const SharedTypes = {
-  dispatch: PropTypes.any,
-  rootProps: PropTypes.any
-}
+export function combineReducers(reducerMap: any) {
+  return async (state: any = {}, action: any, meta: any) => {
+    const promises = Object.keys(reducerMap).map(async (key: string) => {
+      const beforeState = state[key]
+      const f = reducerMap[key]
 
-export class Provider extends React.Component {
-  static childContextTypes: any = SharedTypes
+      if (!(f instanceof Function)) {
+        return { key, result: f }
+      }
 
-  props: any
+      if (meta && meta.for) {
+        // Handle dispatchFor('aaa')
+        if (!(meta.for === f || meta.for === key)) {
+          return { key, result: beforeState }
+        }
 
-  getChildContext() {
-    return {
-      dispatch: this.props.emitter.emit.bind(this.props.emitter),
-      rootProps: this.props
-    }
-  }
-  render() {
-    return this.props.children
-  }
-}
-
-export function withFlux(subscriber: Function, initialState: any = {}) {
-  const pr = new PromisedReducer(initialState)
-  return (Wrapped: Class<React$Component<*, *, *>>) =>
-    class Flumpt$WithFlux extends React.Component {
-      static childContextTypes: any = SharedTypes
-
-      getChildContext() {
-        const rootProps = Object.assign({}, this.props, this.state)
-        return {
-          dispatch: pr.emit.bind(pr),
-          rootProps
+        // Handle dispatchFor(['aaa', 'bbb'])
+        if (
+          meta.for.length &&
+          !(meta.for.includes(f) || meta.for.includes(key))
+        ) {
+          return { key, result: beforeState }
         }
       }
 
+      console.time(`async ${key}`)
+      const result = await f(beforeState, action, meta)
+      console.timeEnd(`async ${key}`)
+      return { key, result }
+    })
+
+    const results = await Promise.all(promises)
+
+    return results.reduce((acc: any, { key, result }) => {
+      return { ...acc, [key]: result }
+    }, {})
+  }
+}
+
+const contextTypes = {
+  dispatch: PropTypes.any,
+  getState: PropTypes.any
+}
+
+export const createStore = async (
+  reducer: Function,
+  initialState?: any,
+  _middlewares?: any
+) => {
+  let state =
+    initialState ||
+    (await reducer(undefined, {
+      type: '@@flumpt/initialize'
+    }))
+
+  const updater = new Updater(initialState)
+
+  return {
+    on: (namespace, fn) => {
+      updater.on(namespace, (...args) => {
+        return fn(...args)
+      })
+    },
+    dispose: () => {
+      updater.removeAllListeners()
+    },
+    getState: () => state,
+    dispatch: (action, meta) => {
+      return updater.update(async prev => {
+        state = await reducer(prev, action, meta)
+        return state
+      })
+    }
+  }
+}
+
+export function withReducer(initStore: any) {
+  const loading = initStore()
+  return (Wrapped: Class<React$Component<*, *, *>>) => {
+    return class Flumpt$WithReducer extends React.Component {
+      static childContextTypes = contextTypes
+      getChildContext() {
+        if (this.store) {
+          return {
+            dispatch: this.store.dispatch,
+            getState: this.store.getState
+          }
+        } else {
+          return {
+            dispatch: () => {
+              console.warn('Flumpt: not ready for dispatch')
+            },
+            getState: () => {
+              console.warn('Flumpt: not ready for getState')
+              return {}
+            }
+          }
+        }
+      }
+
+      state: {
+        flumpt$initialized: boolean,
+        flumpt$loading: boolean
+      }
+
+      ready: Promise<*>
+      store: any
+
       constructor(props: any) {
         super(props)
-        this.state = initialState
-        subscriber(pr.update.bind(pr), pr.on.bind(pr))
-        pr.on(':update', () => {
-          this.setState(pr.state)
+        this.state = {
+          // ...store.getState(),
+          flumpt$initialized: false,
+          flumpt$loading: true
+        }
+
+        loading.then(store => {
+          this.store = store
+          global.store = store
+
+          this.setState({
+            ...store.getState(),
+            flumpt$initialized: true,
+            flumpt$loading: false
+          })
+
+          store.on(':update', state => {
+            this.setState({
+              ...state,
+              flumpt$initialized: true,
+              flumpt$loading: false
+            })
+          })
+
+          store.on(':start-async-updating', () => {
+            this.setState({
+              flumpt$loading: true
+            })
+          })
+
+          store.on(':end-async-updating', () => {
+            this.setState({
+              flumpt$loading: false
+            })
+          })
+          requestAnimationFrame(() => {
+            this.store.dispatch({ type: '@@flumpt/ready' })
+          })
         })
       }
 
       componentWillUnmount() {
-        pr.removeAllListeners()
+        this.store.dispose()
       }
 
       render() {
-        return <Wrapped {...Object.assign({}, this.props, this.state)} />
+        return <Wrapped {...{ ...this.props, ...this.state }} />
+      }
+    }
+  }
+}
+
+// Components
+export function dispatcherFor(target?: any) {
+  return (Wrapped: Class<React$Component<*, *, *>>) =>
+    class Flumpt$Dispatcher extends React.Component {
+      static contextTypes = contextTypes
+      render() {
+        return (
+          <Wrapped
+            {...{
+              ...this.props,
+              dispatch: (action, meta = {}) =>
+                this.context.dispatch(action, { ...meta, for: target })
+            }}
+          />
+        )
       }
     }
 }
 
-export function dispatchable(Wrapped: Class<React$Component<*, *, *>>) {
-  Wrapped.contextTypes = SharedTypes
-  return Wrapped
+export function dispatcher(Wrapped: Class<React$Component<*, *, *>>) {
+  return dispatcherFor()(Wrapped)
 }
 
-// @deprecated
-
-export class Flux extends PromisedReducer {
-  constructor({ renderer, initialState, middlewares }: any) {
-    super(initialState, middlewares)
-    this._renderer = createRenderer({ emitter: this, render: renderer })
-    this._renderedElement = null
-
-    this.on(':update', () => {
-      this._renderedElement = this._renderer(this.render(this.state))
-    })
-    this.subscribe()
-  }
-
-  _setState(...args: any) {
-    if (this._renderedElement) {
-      this._renderedElement.setState(...args)
+export function connect(mapper: Function) {
+  return (Wrapped: Class<React$Component<*, *, *>>) =>
+    class Flumpt$Connector extends React.Component {
+      static contextTypes = contextTypes
+      render() {
+        const props = mapper(this.context.getState())
+        return <Wrapped {...{ ...this.props, props }} />
+      }
     }
-  }
-
-  subscribe() {
-    // override me
-  }
-}
-
-export function createRenderer({ emitter, render }: any) {
-  console.warn('Flumpt.createRenderer is deprecated. Use withFlux')
-  return (el: any) => {
-    return render(<Provider emitter={emitter}>{el}</Provider>)
-  }
-}
-
-export class Component extends React.Component {
-  static contextTypes = SharedTypes
-
-  dispatch(...args: any) {
-    return this.context.dispatch(...args)
-  }
 }

@@ -1,0 +1,8 @@
+{
+  "presets": [
+    ["env", {
+      "regenerator": false
+    }],
+    "@mizchi/babel-preset"
+  ]
+}

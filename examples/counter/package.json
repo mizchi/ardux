@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "build": "browserify -t babelify index.js -o bundle.js",
+    "watch": "watchify -t babelify index.js -o bundle.js"
+  },
+  "devDependencies": {
+    "babelify": "^7.3.0",
+    "browserify": "^14.4.0",
+    "watchify": "^3.9.0"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.23.0"
+  }
+}
