@@ -18,6 +18,11 @@ test('initialize', async t => {
   t.deepEqual(store.getState(), { count: 0 })
 })
 
+test('initialize with initialState', async t => {
+  const store = await createStore(reducer, { count: 3 })
+  t.deepEqual(store.getState(), { count: 3 })
+})
+
 test('dispatch sync', async t => {
   const store = await createStore(reducer)
   store.dispatch({ type: 'increment' })

@@ -3,6 +3,13 @@ import defer from 'promise-defer'
 import { INITIALIZE } from './actions'
 
 export default async (reducer: Function, initialState?: any) => {
+  const firstState =
+    initialState ||
+    (await reducer(undefined, {
+      type: INITIALIZE
+    }))
+
+  let _state = firstState
   let _currentPromise = null
   let _actionQueue: {
     action: any,
@@ -20,14 +27,6 @@ export default async (reducer: Function, initialState?: any) => {
   const addQueue = action => {
     _actionQueue.push(action)
   }
-
-  // create initialState
-
-  let _state =
-    initialState ||
-    (await reducer(undefined, {
-      type: INITIALIZE
-    }))
 
   return {
     subscribe(fn: Function, emitOnInit: boolean = true) {
@@ -53,7 +52,7 @@ export default async (reducer: Function, initialState?: any) => {
       return _currentPromise || Promise.resolve()
     },
     dispatch: async (action, meta) => {
-      // queueing on updating
+      // queueing if other action is on progress
       if (_updating) {
         addQueue({ action, meta })
         return _currentPromise
