@@ -1,35 +1,91 @@
 /* @flow */
-import Updater from './Updater'
+import defer from 'promise-defer'
 import { INITIALIZE } from './actions'
 
-export default async (
-  reducer: Function,
-  initialState?: any,
-  _middlewares?: any
-) => {
-  let state =
+export default async (reducer: Function, initialState?: any) => {
+  let _currentPromise = null
+  let _actionQueue: {
+    action: any,
+    meta: any
+  }[] = []
+
+  let _updating = false
+  let _listeners: Function[] = []
+
+  // helpers
+  const emit = () => {
+    _listeners.forEach(f => f(_state))
+  }
+
+  const addQueue = action => {
+    _actionQueue.push(action)
+  }
+
+  // create initialState
+
+  let _state =
     initialState ||
     (await reducer(undefined, {
       type: INITIALIZE
     }))
 
-  const updater = new Updater(initialState)
-
   return {
-    on: (namespace, fn) => {
-      updater.on(namespace, (...args) => {
-        return fn(...args)
-      })
+    subscribe(fn: Function) {
+      _listeners.push(fn)
+      emit()
     },
-    dispose: () => {
-      updater.removeAllListeners()
+    dispose() {
+      if (_currentPromise) {
+        _currentPromise.reject('disposed')
+      }
+      _actionQueue = []
+      _listeners = []
     },
-    getState: () => state,
-    dispatch: (action, meta) => {
-      return updater.update(async prev => {
-        state = await reducer(prev, action, meta)
-        return state
-      })
+    getState() {
+      return _state
+    },
+    dispatch: async (action, meta) => {
+      // queueing on updating
+      if (_updating) {
+        addQueue({ action, meta })
+        return _currentPromise
+      }
+
+      // dispatch and end
+      const stateOrPromise = reducer(_state, action, meta)
+      if (!(stateOrPromise instanceof Promise)) {
+        _state = stateOrPromise
+        emit()
+        return Promise.resolve(action)
+      }
+
+      // start async updating
+      let _handledActions = []
+      _updating = true
+
+      const deferred = defer()
+      _currentPromise = deferred.promise
+      _currentPromise.then(() => emit())
+
+      // if there is left queue after first async,
+      const updateLoop = async () => {
+        const next = _actionQueue.shift()
+        if (!next) {
+          _updating = false
+          deferred.resolve({ actions: _handledActions })
+          _handledActions = []
+          return
+        }
+        _state = await reducer(_state, next.action, next.meta)
+        _handledActions.push(next.action)
+        // TODO: Emit update internal state
+        return updateLoop() // recursive loop
+      }
+
+      _state = await stateOrPromise
+      _handledActions.push(action)
+      updateLoop()
+      return _currentPromise
     }
   }
 }

@@ -1,6 +1,5 @@
 /* @flow */
 import React from 'react'
-import { READY, BEGIN_ASYNC_UPDATE, UPDATE } from '../actions'
 import contextTypes from './contextTypes'
 
 export default function withReducer(initStore: any) {
@@ -32,13 +31,11 @@ export default function withReducer(initStore: any) {
         flumpt$loading: boolean
       }
 
-      ready: Promise<*>
       store: any
 
       constructor(props: any) {
         super(props)
         this.state = {
-          // ...store.getState(),
           flumpt$initialized: false,
           flumpt$loading: true
         }
@@ -47,28 +44,12 @@ export default function withReducer(initStore: any) {
           this.store = store
           global.store = store
 
-          this.setState({
-            ...store.getState(),
-            flumpt$initialized: true,
-            flumpt$loading: false
-          })
-
-          store.on(UPDATE, state => {
+          store.subscribe(state => {
             this.setState({
               ...state,
               flumpt$initialized: true,
               flumpt$loading: false
             })
-          })
-
-          store.on(BEGIN_ASYNC_UPDATE, () => {
-            this.setState({
-              flumpt$loading: true
-            })
-          })
-
-          requestAnimationFrame(() => {
-            this.store.dispatch({ type: READY })
           })
         })
       }
