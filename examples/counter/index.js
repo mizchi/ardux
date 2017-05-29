@@ -42,21 +42,22 @@ const IncrementButton = dispatcherFor([
     </button>
   )
 })
-
-const App = withReducer(initStore)(function App(props: any) {
-  if (!props.flumpt$initialized) {
-    return <span>Initializing...</span>
-  } else {
-    return (
-      <div>
-        {props.counter && <span>{props.counter.count}</span>}
-        <hr />
-        <IncrementButton async={true} disabled={props.flumpt$loading} />
-        <IncrementButton async={false} disabled={props.flumpt$loading} />
-        <IncrementButton async={false} disabled={false} />
-      </div>
-    )
-  }
-})
-
-ReactDOM.render(<App />, document.querySelector('main'))
+;(async () => {
+  const store = await createStore(reducer)
+  const App = withReducer(store)(function App(props: any) {
+    if (!props.flumpt$initialized) {
+      return <span>Initializing...</span>
+    } else {
+      return (
+        <div>
+          {props.counter && <span>{props.counter.count}</span>}
+          <hr />
+          <IncrementButton async={true} disabled={props.flumpt$loading} />
+          <IncrementButton async={false} disabled={props.flumpt$loading} />
+          <IncrementButton async={false} disabled={false} />
+        </div>
+      )
+    }
+  })
+  ReactDOM.render(<App />, document.querySelector('main'))
+})()

@@ -30,9 +30,11 @@ export default async (reducer: Function, initialState?: any) => {
     }))
 
   return {
-    subscribe(fn: Function) {
+    subscribe(fn: Function, emitOnInit: boolean = true) {
       _listeners.push(fn)
-      emit()
+      if (emitOnInit) {
+        emit()
+      }
     },
     dispose() {
       if (_currentPromise) {
@@ -43,6 +45,12 @@ export default async (reducer: Function, initialState?: any) => {
     },
     getState() {
       return _state
+    },
+    isUpdating(): boolean {
+      return _updating
+    },
+    waitNextState(): Promise<void> {
+      return _currentPromise || Promise.resolve()
     },
     dispatch: async (action, meta) => {
       // queueing on updating

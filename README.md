@@ -2,7 +2,12 @@
 
 WIP
 
-Reducer with async
+Reducer with async queue
+
+## Difference with Redux
+
+- reducer can take async/await and promise
+  - Aldux's `combineReducers` folds
 
 ## Concepts
 
@@ -13,47 +18,69 @@ Reducer with async
 ## Example
 
 ```js
+/* @flow */
+import 'babel-polyfill'
 import React from 'react'
-import { withReducer, dispatchable } from 'flumpt'
+import ReactDOM from 'react-dom'
+import { combineReducers, createStore } from 'aldux'
+import { withReducer, dispatcherFor } from 'react-aldux'
+
 const initialState = { count: 0 }
 
-// reducer: Flumpt's reducer can take async!
-const reducer = async (state = initialState, action) => {
+// reducer can take async!
+const counter = async (state = initialState, action) => {
   switch (action.type) {
     case 'increment-async':
       // wait 500ms
       await new Promise(resolve => setTimeout(resolve, 500))
+      return { count: state.count + 1 }
+    case 'increment':
       return { count: state.count + 1 }
     default:
       return state
   }
 }
 
-// only provide context.dispatch()
-const IncrementButton = dispatchable(
-  function IncrementButton(props, context) {
-    return <button
+const reducer = combineReducers({ counter })
+const initStore = () => createStore(reducer)
+
+// UI
+const IncrementButton = dispatcherFor([
+  counter
+])(function IncrementButton(props: {
+  disabled: boolean,
+  async: boolean,
+  dispatch: any
+}) {
+  return (
+    <button
       disabled={props.disabled}
-      onClick={() => context.dispatch({ type: 'increment-async' })}
+      onClick={() =>
+        props.dispatch({ type: props.async ? 'increment-async' : 'increment' })}
     >
       +1
     </button>
-  }
-)
+  )
+})
 
-const App = withReducer(reducer)(function App(props) {
-  if (!props.flumpt$initilized) {
+const App = withReducer(initStore)(function App(props: any) {
+  if (!props.flumpt$initialized) {
     return <span>Initializing...</span>
   } else {
-    return <div>
-      <span>{props.count}</span>
-      <IncremenButton disabled={props.flumpt$loading}/>
-      <IncremenButton disabled={false}/>
-    </div>
+    return (
+      <div>
+        {props.counter && <span>{props.counter.count}</span>}
+        <hr />
+        <IncrementButton async={true} disabled={props.flumpt$loading} />
+        <IncrementButton async={false} disabled={props.flumpt$loading} />
+        <IncrementButton async={false} disabled={false} />
+      </div>
+    )
   }
 })
 
-ReactDOM.render(<App/>, el)
+ReactDOM.render(<App />, document.querySelector('main'))
+
 ```
 
 ## LICENSE
