@@ -1,6 +1,7 @@
 /* @flow */
 import defer from 'promise-defer'
 import { INITIALIZE } from './actions'
+import type { Meta } from './types'
 
 export default async (reducer: Function, initialState?: any) => {
   const firstState =
@@ -13,7 +14,7 @@ export default async (reducer: Function, initialState?: any) => {
   let _currentPromise = null
   let _actionQueue: {
     action: any,
-    meta: any
+    meta: ?Meta
   }[] = []
 
   let _updating = false
@@ -24,8 +25,8 @@ export default async (reducer: Function, initialState?: any) => {
     _listeners.forEach(f => f(_state))
   }
 
-  const addQueue = action => {
-    _actionQueue.push(action)
+  const addQueue = actionAndMeta => {
+    _actionQueue.push(actionAndMeta)
   }
 
   return {
@@ -51,7 +52,7 @@ export default async (reducer: Function, initialState?: any) => {
     waitNextState(): Promise<void> {
       return _currentPromise || Promise.resolve()
     },
-    dispatch: async (action, meta) => {
+    dispatch: async (action, meta?: Meta) => {
       // queueing if other action is on progress
       if (_updating) {
         addQueue({ action, meta })
@@ -84,6 +85,9 @@ export default async (reducer: Function, initialState?: any) => {
           return
         }
         _state = await reducer(_state, next.action, next.meta)
+        if (meta && meta.forceUpdate) {
+          emit()
+        }
         _handledActions.push(next.action)
         // TODO: Emit update internal state
         return updateLoop() // recursive loop

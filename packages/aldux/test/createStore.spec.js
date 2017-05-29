@@ -93,3 +93,15 @@ test('subscribe: fold async / queueing by initial async', async t => {
   const p2 = store.dispatch({ type: 'increment' })
   return await Promise.all([p1, p2])
 })
+
+test('subscribe: forceUpdate emit subscribe even if action is in folding', async t => {
+  t.plan(3)
+  const store = await createStore(reducer)
+  store.subscribe(_state => {
+    t.pass()
+  }, false)
+  const p1 = store.dispatch({ type: 'increment-async' }, { forceUpdate: true })
+  const p2 = store.dispatch({ type: 'increment-async' }, { forceUpdate: true })
+  const p3 = store.dispatch({ type: 'increment-async' })
+  return await Promise.all([p1, p2, p3])
+})

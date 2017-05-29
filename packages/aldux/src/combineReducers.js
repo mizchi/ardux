@@ -2,11 +2,7 @@
 import flatten from 'flatten'
 import immutable from 'object-path-immutable'
 import objectPath from 'object-path'
-
-type Meta = {
-  scope?: Function[],
-  parallel?: boolean
-}
+import type { Meta } from './types'
 
 type FlatReducers = { val: any, path: string[] }[]
 
