@@ -1,2 +1,4 @@
 extends:
   - mizchi
+rules:
+  react/prefer-stateless-function: 0

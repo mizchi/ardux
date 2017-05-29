@@ -1,7 +1,7 @@
 {
-  "name": "flumpt",
-  "version": "0.3.1",
-  "description": "Conceptual Implementation of EventEmitter based Flux.",
+  "name": "alux",
+  "version": "0.1.0",
+  "description": "Async reducer",
   "main": "lib/flumpt.js",
   "scripts": {
     "prepare": "babel src --out-dir lib",
@@ -17,6 +17,7 @@
   "directories": {
     "test": "test"
   },
+  "files": ["lib"],
   "devDependencies": {
     "@mizchi/babel-preset": "^1.1.1",
     "babel-cli": "^6.24.1",

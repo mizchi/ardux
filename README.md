@@ -1,52 +1,58 @@
 # Flumpt
 
-Conceptual Implementation of EventEmitter based Flux.
+Simple async-able reducer with React.
 
 ## Concepts
 
-Flux is (... what you think) but all you need is just an `EventEmitter`.
-
-Interface is inpired by `Om`.
+- Folding async updating and dispatch only last result
+- Reducer with async
+- Internal action queueing
 
 ## Example
 
-### withFlux
-
 ```js
 import React from 'react'
-import {withFlux, dispatchable} from 'flumpt'
+import { withReducer, dispatchable } from 'flumpt'
+const initialState = { count: 0 }
 
-// hoc
-const CounterIncrement = dispatchable(function CounterIncrement(props, context) {
-  return <button onClick={() => context.dispatch('increment')}>+1</button>
-})
-
-@withFlux((update, on) => {
-  on('increment', () => {
-    update(state => {
-      return {count: state.count + 1}
-    })
-  })
-}, {count: 0})
-class MyApp extends React.Component {
-  render () {
-    return <div>
-      <span>{this.props.count}</span>
-      <CounterIncrement/>
-    </div>
+// reducer: Flumpt's reducer can take async!
+const reducer = async (state = initialState, action) => {
+  switch (action.type) {
+    case 'increment-async':
+      // wait 500ms
+      await new Promise(resolve => setTimeout(resolve, 500))
+      return { count: state.count + 1 }
+    default:
+      return state
   }
 }
+
+// only provide context.dispatch()
+const IncrementButton = dispatchable(
+  function IncrementButton(props, context) {
+    return <button
+      disabled={props.disabled}
+      onClick={() => context.dispatch({ type: 'increment-async' })}
+    >
+      +1
+    </button>
+  }
+)
+
+const App = withReducer(reducer)(function App(props) {
+  if (!props.flumpt$initilized) {
+    return <span>Initializing...</span>
+  } else {
+    return <div>
+      <span>{props.count}</span>
+      <IncremenButton disabled={props.flumpt$loading}/>
+      <IncremenButton disabled={false}/>
+    </div>
+  }
+})
+
+ReactDOM.render(<App/>, el)
 ```
-
-- `Flux` is `EventEmitter`
-- `Component` is just `ReactComponent` with `dispatch` method.
-
-See detail in `index.d.ts`
-
-## Middlewares
-
-Middleware function type is `<T>(t: T) => T | Promise<T>` or  `<T>(t: Promise<T>) => Promise<T>;`. (Use Promise.resolve if you consider promise)
-`Flux#render(state)` is always promise unwrapped promise but a middelware handle raw nextState received by `Flux#update`.
 
 ## LICENSE
 
