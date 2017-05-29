@@ -60,7 +60,6 @@ test('skip async by scope', async t => {
   })
   const first = await combined(undefined, initAction)
   const second = combined(first, initAction, { scope: [] })
-  console.log('second', second, second instanceof Promise)
   t.not(second instanceof Promise)
   t.deepEqual(first, second)
 })
