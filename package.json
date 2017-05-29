@@ -2,7 +2,7 @@
   "name": "alux",
   "version": "0.1.0",
   "description": "Async reducer",
-  "main": "lib/flumpt.js",
+  "main": "lib/index.js",
   "scripts": {
     "prepare": "babel src --out-dir lib",
     "lint": "eslint src test examples",

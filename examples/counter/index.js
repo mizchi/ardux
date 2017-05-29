@@ -8,7 +8,7 @@ import {
   dispatcher,
   combineReducers,
   createStore
-} from '../../src/flumpt'
+} from '../../src'
 
 const initialState = { count: 0 }
 
