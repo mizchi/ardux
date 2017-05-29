@@ -26,5 +26,8 @@
     "object-path": "^0.11.4",
     "object-path-immutable": "^0.5.1",
     "promise-defer": "^1.0.0"
+  },
+  "devDependencies": {
+    "redux": "^3.6.0"
   }
 }
