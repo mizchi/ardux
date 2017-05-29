@@ -4,7 +4,7 @@ import contextTypes from './contextTypes'
 
 // Components
 export function dispatcherFor(target?: any) {
-  return (Wrapped: Class<React$Component<*, *, *>>) =>
+  return (Wrapped: any) =>
     class Flumpt$Dispatcher extends React.Component {
       static contextTypes = contextTypes
       render() {
@@ -21,6 +21,6 @@ export function dispatcherFor(target?: any) {
     }
 }
 
-export function dispatcher(Wrapped: Class<React$Component<*, *, *>>) {
+export function dispatcher(Wrapped: any) {
   return dispatcherFor()(Wrapped)
 }

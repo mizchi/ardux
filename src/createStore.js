@@ -1,5 +1,6 @@
 /* @flow */
 import Updater from './Updater'
+import { INITIALIZE } from './actions'
 
 export default async (
   reducer: Function,
@@ -9,7 +10,7 @@ export default async (
   let state =
     initialState ||
     (await reducer(undefined, {
-      type: '@@flumpt/initialize'
+      type: INITIALIZE
     }))
 
   const updater = new Updater(initialState)

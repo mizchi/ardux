@@ -1,10 +1,11 @@
 /* @flow */
 import React from 'react'
+import { READY, BEGIN_ASYNC_UPDATE, UPDATE } from '../actions'
 import contextTypes from './contextTypes'
 
 export default function withReducer(initStore: any) {
   const loading = initStore()
-  return (Wrapped: Class<React$Component<*, *, *>>) => {
+  return (Wrapped: any) => {
     return class Flumpt$WithReducer extends React.Component {
       static childContextTypes = contextTypes
       getChildContext() {
@@ -52,7 +53,7 @@ export default function withReducer(initStore: any) {
             flumpt$loading: false
           })
 
-          store.on(':update', state => {
+          store.on(UPDATE, state => {
             this.setState({
               ...state,
               flumpt$initialized: true,
@@ -60,19 +61,14 @@ export default function withReducer(initStore: any) {
             })
           })
 
-          store.on(':start-async-updating', () => {
+          store.on(BEGIN_ASYNC_UPDATE, () => {
             this.setState({
               flumpt$loading: true
             })
           })
 
-          store.on(':end-async-updating', () => {
-            this.setState({
-              flumpt$loading: false
-            })
-          })
           requestAnimationFrame(() => {
-            this.store.dispatch({ type: '@@flumpt/ready' })
+            this.store.dispatch({ type: READY })
           })
         })
       }

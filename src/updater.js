@@ -1,5 +1,12 @@
 /* @flow */
 import EventEmitter from 'events'
+import {
+  UPDATE,
+  END_ASYNC_UPDATE,
+  BEGIN_ASYNC_UPDATE,
+  PROCESS_UPDATE,
+  PROCESS_ASYNC_UPDATE
+} from './actions'
 
 const applyMiddlewares = (middlewares, nextState) => {
   return middlewares.reduce((s, next) => {
@@ -33,11 +40,10 @@ export default class Updater extends EventEmitter {
     }
 
     this.state = nextState
-    this.emit(':update', this.state)
-    console.log(':update', this.state)
+    this.emit(UPDATE, this.state)
 
     if (inAsync) {
-      this.emit(':end-async-updating')
+      this.emit(END_ASYNC_UPDATE)
       // console.log(':end-async-updating')
     }
     return Promise.resolve()
@@ -60,15 +66,13 @@ export default class Updater extends EventEmitter {
     if (!(promiseOrState instanceof Promise)) {
       const oldState = this.state
       this._finishUp(promiseOrState)
-      this.emit(':process-updating', this.state, oldState)
-      // console.log('process-updating')
+      this.emit(PROCESS_UPDATE, this.state, oldState)
       return Promise.resolve()
     }
 
     // start async updating!
     this.updating = true
-    this.emit(':start-async-updating')
-    // console.log('start-async-updating')
+    this.emit(BEGIN_ASYNC_UPDATE)
 
     // create callback to response.
     // TODO: I want Promise.defer
@@ -80,8 +84,7 @@ export default class Updater extends EventEmitter {
     // drain first async
     const lastState = this.state
     promiseOrState.then(nextState => {
-      this.emit(':process-async-updating', nextState, lastState)
-      // console.log('process-async-updating')
+      this.emit(PROCESS_ASYNC_UPDATE, nextState, lastState)
 
       // if there is left queue after first async,
       const updateLoop = appliedState => {
@@ -95,12 +98,12 @@ export default class Updater extends EventEmitter {
             applyMiddlewares(this.middlewares, nextFn(appliedState))
           ).then(s => {
             this.emit(
-              ':process-async-updating',
+              PROCESS_ASYNC_UPDATE,
               s,
               appliedState,
               this._updatingQueue.length
             )
-            this.emit(':process-updating', s, appliedState)
+            this.emit(PROCESS_UPDATE, s, appliedState)
             updateLoop(s) // recursive loop
           })
         }

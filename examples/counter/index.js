@@ -30,7 +30,9 @@ const reducer = combineReducers({ counter })
 const initStore = () => createStore(reducer)
 
 // UI
-const IncrementButton = dispatcher(function IncrementButton(props: {
+const IncrementButton = dispatcherFor([
+  counter
+])(function IncrementButton(props: {
   disabled: boolean,
   async: boolean,
   dispatch: any
@@ -47,7 +49,6 @@ const IncrementButton = dispatcher(function IncrementButton(props: {
 })
 
 const App = withReducer(initStore)(function App(props: any) {
-  console.log('props on App', props)
   if (!props.flumpt$initialized) {
     return <span>Initializing...</span>
   } else {
