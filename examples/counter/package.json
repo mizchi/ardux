@@ -4,6 +4,8 @@
     "watch": "watchify -t babelify index.js -o bundle.js"
   },
   "devDependencies": {
+    "aldux": "file:../../packages/aldux",
+    "react-aldux": "file:../../packages/react-aldux",
     "babelify": "^7.3.0",
     "browserify": "^14.4.0",
     "watchify": "^3.9.0"

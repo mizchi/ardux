@@ -1,0 +1,30 @@
+{
+  "name": "aldux",
+  "version": "0.0.1",
+  "description": "Async Reducer",
+  "main": "lib/index.js",
+  "scripts": {
+    "prepare": "babel src --out-dir lib",
+    "test": "ava"
+  },
+  "ava": {
+    "babel": "inherit",
+    "require": [
+      "babel-polyfill",
+      "babel-register"
+    ],
+    "files": [
+      "test/*.spec.js"
+    ]
+  },
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "flatten": "^1.0.2",
+    "object-dig": "^0.1.1",
+    "object-path": "^0.11.4",
+    "object-path-immutable": "^0.5.1",
+    "promise-defer": "^1.0.0"
+  }
+}

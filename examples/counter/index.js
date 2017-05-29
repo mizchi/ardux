@@ -2,13 +2,8 @@
 import 'babel-polyfill'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {
-  withReducer,
-  dispatcherFor,
-  dispatcher,
-  combineReducers,
-  createStore
-} from '../../src'
+import { combineReducers, createStore } from 'aldux'
+import { withReducer, dispatcherFor, dispatcher } from 'react-aldux'
 
 const initialState = { count: 0 }
 

@@ -1,0 +1,18 @@
+{
+  "name": "react-aldux",
+  "version": "0.0.1",
+  "description": "aldux connector with react",
+  "main": "lib/index.js",
+  "scripts": {
+    "prepare": "babel src --out-dir lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "prop-types": "^15.5.10"
+  },
+  "peerDependencies": {
+    "react": ">=15"
+  }
+}

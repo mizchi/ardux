@@ -1,6 +1,8 @@
-# Flumpt
+# Aldux
 
-Simple async-able reducer with React.
+WIP
+
+Reducer with async
 
 ## Concepts
 
