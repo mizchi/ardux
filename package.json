@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "description": "Async reducer",
   "scripts": {
-    "lint": "eslint src test examples",
+    "lint": "eslint examples packages",
     "lint:fix": "yarn run lint -- fix",
     "test": "ava"
   },

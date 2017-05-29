@@ -2,3 +2,4 @@ extends:
   - mizchi
 rules:
   react/prefer-stateless-function: 0
+  import/no-extraneous-dependencies: 0

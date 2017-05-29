@@ -3,11 +3,11 @@ import 'babel-polyfill'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { combineReducers, createStore } from 'aldux'
-import { withReducer, dispatcherFor, dispatcher } from 'react-aldux'
+import { withReducer, dispatcherFor } from 'react-aldux'
 
 const initialState = { count: 0 }
 
-// reducer: Flumpt's reducer can take async!
+// reducer can take async!
 const counter = async (state = initialState, action) => {
   switch (action.type) {
     case 'increment-async':

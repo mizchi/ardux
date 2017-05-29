@@ -1,0 +1,4 @@
+packages/*/node_modules
+packages/*/lib
+examples/*/node_modules
+examples/*/bundle.js
