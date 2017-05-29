@@ -1,39 +1,94 @@
 /* @flow */
-export default function combineReducers(reducerMap: any) {
-  return async (state: any = {}, action: any, meta: any) => {
-    const promises = Object.keys(reducerMap).map(async (key: string) => {
-      const beforeState = state[key]
-      const child = reducerMap[key]
+import flatten from 'flatten'
+import immutable from 'object-path-immutable'
+import objectPath from 'object-path'
 
-      if (!(child instanceof Function)) {
-        return { key, result: child }
+type Meta = {
+  scope?: Function[],
+  parallel?: boolean
+}
+
+type FlatReducers = { val: any, path: string[] }[]
+
+export function flattenReducers(
+  map: { [key: string]: any },
+  path: string[] = []
+): FlatReducers {
+  return flatten(
+    Object.keys(map).map(key => {
+      const val = map[key]
+      if (!(val instanceof Function) && val instanceof Object) {
+        return flattenReducers(val, path.concat([key]))
+      } else {
+        return { val, path: path.concat([key]) }
       }
-
-      if (meta && meta.for) {
-        // Handle dispatchFor('aaa')
-        if (!(meta.for === child || meta.for === key)) {
-          return { key, result: beforeState }
-        }
-
-        // Handle dispatchFor(['aaa', 'bbb'])
-        if (
-          meta.for.length &&
-          !(meta.for.includes(child) || meta.for.includes(key))
-        ) {
-          return { key, result: beforeState }
-        }
-      }
-
-      console.time(`async ${key}`)
-      const result = await child(beforeState, action, meta)
-      console.timeEnd(`async ${key}`)
-      return { key, result }
     })
+  )
+}
 
-    const results = await Promise.all(promises)
+export function exec(
+  list: FlatReducers,
+  state: any,
+  action: any,
+  meta: ?Meta
+): FlatReducers {
+  return list.map(({ path, val }) => {
+    if (val instanceof Function) {
+      if (meta && meta.scope && meta.scope instanceof Array) {
+        if (!meta.scope.includes(val)) {
+          const lastVal = objectPath.get(state, path)
+          return { path, val: lastVal }
+        }
+      }
+      const cur = objectPath.get(state, path)
+      return { path, val: val(cur, action, meta) }
+    }
+    return { path, val }
+  })
+}
 
-    return results.reduce((acc: any, { key, result }) => {
-      return { ...acc, [key]: result }
-    }, {})
+async function resolveAsyncParallel(listOnExec: FlatReducers): Promise<Object> {
+  const results = await Promise.all(listOnExec.map(i => i.val))
+  return foldState(
+    results.map((ret, index) => {
+      return { path: listOnExec[index].path, val: ret }
+    })
+  )
+}
+
+async function resolveAsyncSerial(listOnExec: FlatReducers): Promise<Object> {
+  const results: any = []
+  for (const i of listOnExec) {
+    const ret = await i.val
+    results.push({ path: i.path, val: ret })
+  }
+  return foldState(results)
+}
+
+function includePromise(list: FlatReducers): boolean {
+  return list.some(i => i.val instanceof Promise)
+}
+
+function foldState(list: FlatReducers): Object {
+  return list.reduce((acc, { path, val }) => {
+    return immutable.set(acc, path, val)
+  }, {})
+}
+
+export default function combineReducers(reducerMap: {
+  [key: string]: any
+}): (any, any, any) => Promise<Object> {
+  const list = flattenReducers(reducerMap)
+  return (s: any = {}, a: any, meta: ?Meta) => {
+    const listOnExec = exec(list, s, a, meta)
+    if (includePromise(listOnExec)) {
+      if (meta && !meta.parallel) {
+        return resolveAsyncSerial(listOnExec)
+      } else {
+        return resolveAsyncParallel(listOnExec)
+      }
+    } else {
+      return foldState(listOnExec)
+    }
   }
 }
