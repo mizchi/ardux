@@ -1,16 +1,16 @@
 {
   "scripts": {
     "build": "browserify -t babelify index.js -o bundle.js",
-    "watch": "watchify -t babelify index.js -o bundle.js"
+    "watch": "watchify -t babelify index.js -o bundle.js -v"
   },
   "devDependencies": {
-    "aldux": "file:../../packages/aldux",
-    "react-aldux": "file:../../packages/react-aldux",
     "babelify": "^7.3.0",
     "browserify": "^14.4.0",
+    "react-ardux": "0.0.2",
     "watchify": "^3.9.0"
   },
   "dependencies": {
-    "babel-polyfill": "^6.23.0"
+    "babel-polyfill": "^6.23.0",
+    "recompose": "^0.23.4"
   }
 }

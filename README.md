@@ -22,8 +22,8 @@ Reducer with async queue
 import 'babel-polyfill'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { combineReducers, createStore } from 'aldux'
-import { withReducer, dispatcherFor } from 'react-aldux'
+import { combineReducers, createStore } from 'ardux'
+import { withReducer, dispatcherFor } from 'react-ardux'
 
 const initialState = { count: 0 }
 
@@ -71,8 +71,8 @@ const App = withReducer(initStore)(function App(props: any) {
       <div>
         {props.counter && <span>{props.counter.count}</span>}
         <hr />
-        <IncrementButton async={true} disabled={props.flumpt$loading} />
-        <IncrementButton async={false} disabled={props.flumpt$loading} />
+        <IncrementButton async={true} disabled={props.ardux$loading} />
+        <IncrementButton async={false} disabled={props.ardux$loading} />
         <IncrementButton async={false} disabled={false} />
       </div>
     )

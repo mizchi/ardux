@@ -3,7 +3,11 @@ import defer from 'promise-defer'
 import { INITIALIZE } from './actions'
 import type { Meta } from './types'
 
-export default async (reducer: Function, initialState?: any) => {
+export default async (
+  reducer: Function,
+  initialState?: any,
+  enhancer?: Function
+) => {
   const firstState =
     initialState ||
     (await reducer(undefined, {

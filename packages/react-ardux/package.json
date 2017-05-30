@@ -1,7 +1,7 @@
 {
   "name": "react-aldux",
   "version": "0.0.1",
-  "description": "aldux connector with react",
+  "description": "ardux connector with react",
   "main": "lib/index.js",
   "scripts": {
     "prepare": "babel src --out-dir lib"

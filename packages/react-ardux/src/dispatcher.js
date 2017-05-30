@@ -3,17 +3,19 @@ import React from 'react'
 import contextTypes from './contextTypes'
 
 // Components
-export function dispatcherFor(target?: any) {
+export function dispatcherFor(scope?: any) {
   return (Wrapped: any) =>
-    class Flumpt$Dispatcher extends React.Component {
+    class Aldux$Dispatcher extends React.Component {
       static contextTypes = contextTypes
       render() {
+        const store = this.context.store
         return (
           <Wrapped
             {...{
               ...this.props,
-              dispatch: (action, meta = {}) =>
-                this.context.dispatch(action, { ...meta, for: target })
+              dispatch: (action, meta = {}) => {
+                store.dispatch(action, { ...meta, scope })
+              }
             }}
           />
         )
