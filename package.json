@@ -35,5 +35,7 @@
     "lerna": "^2.0.0-rc.5",
     "react": "^15.5.4",
     "react-dom": "^15.5.4"
-  }
+  },
+  "main": "index.js",
+  "repository": "git@github.com:mizchi/ardux.git"
 }
