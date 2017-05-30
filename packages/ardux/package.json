@@ -1,5 +1,5 @@
 {
-  "name": "aldux",
+  "name": "ardux",
   "version": "0.0.1",
   "description": "Async Reducer",
   "main": "lib/index.js",

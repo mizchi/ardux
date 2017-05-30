@@ -5,7 +5,7 @@ import contextTypes from './contextTypes'
 // Components
 export function dispatcherFor(scope?: any) {
   return (Wrapped: any) =>
-    class Aldux$Dispatcher extends React.Component {
+    class Ardux$Dispatcher extends React.Component {
       static contextTypes = contextTypes
       render() {
         const store = this.context.store

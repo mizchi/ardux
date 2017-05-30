@@ -1,4 +1,4 @@
-# Aldux
+# Ardux
 
 WIP
 
@@ -7,7 +7,7 @@ Reducer with async queue
 ## Difference with Redux
 
 - reducer can take async/await and promise
-  - Aldux's `combineReducers` folds
+  - Ardux's `combineReducers` folds
 
 ## Concepts
 

@@ -6,7 +6,7 @@ const id = x => x
 
 export default function connect(mapper: Function = id) {
   return (Wrapped: Class<React$Component<*, *, *>>) =>
-    class Aldux$Connector extends React.Component {
+    class Ardux$Connector extends React.Component {
       static contextTypes = contextTypes
       constructor(...args: any) {
         super(...args)
