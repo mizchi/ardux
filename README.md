@@ -1,34 +1,39 @@
 # Ardux
 
-WIP
-
-Reducer with async queue
-
-## Difference with Redux
-
-- reducer can take async/await and promise
-  - Ardux's `combineReducers` folds
+Async + Reducer + Redux Like API
 
 ## Concepts
 
-- Folding async updating and dispatch only last result
 - Reducer with async
-- Internal action queueing
+- Folding promises and dispatch only last state
+- directivity `dispatch`
+
+## Difference with Redux
+
+- Reducer can take async/await and promise
+- `dispatch` returns next definitive promise
+- No bindActionCreators
+- No Middlewares
 
 ## Example
 
+```
+$ yarn add ardux react-ardux react reacd-dom
+```
+
 ```js
 /* @flow */
-import 'babel-polyfill'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { combineReducers, createStore } from 'ardux'
-import { withReducer, dispatcherFor } from 'react-ardux'
+import {
+  dispatcherFor,
+  Provider,
+  connect
+} from 'react-ardux'
 
-const initialState = { count: 0 }
-
-// reducer can take async!
-const counter = async (state = initialState, action) => {
+// reducer can take async
+const counter = async (state = { count: 0 }, action) => {
   switch (action.type) {
     case 'increment-async':
       // wait 500ms
@@ -42,19 +47,16 @@ const counter = async (state = initialState, action) => {
 }
 
 const reducer = combineReducers({ counter })
-const initStore = () => createStore(reducer)
 
-// UI
+// update only counter reducer on this dispatch
 const IncrementButton = dispatcherFor([
   counter
 ])(function IncrementButton(props: {
-  disabled: boolean,
   async: boolean,
   dispatch: any
 }) {
   return (
     <button
-      disabled={props.disabled}
       onClick={() =>
         props.dispatch({ type: props.async ? 'increment-async' : 'increment' })}
     >
@@ -63,24 +65,27 @@ const IncrementButton = dispatcherFor([
   )
 })
 
-const App = withReducer(initStore)(function App(props: any) {
-  if (!props.flumpt$initialized) {
-    return <span>Initializing...</span>
-  } else {
-    return (
-      <div>
-        {props.counter && <span>{props.counter.count}</span>}
-        <hr />
-        <IncrementButton async={true} disabled={props.ardux$loading} />
-        <IncrementButton async={false} disabled={props.ardux$loading} />
-        <IncrementButton async={false} disabled={false} />
-      </div>
-    )
-  }
+// Redux like connect
+const mapStateToProps = root => ({count: root.counter.count})
+const App = connect(mapStateToProps)(props => {
+  return (
+    <div>
+      <span>{props.count}</span>
+      <hr />
+      <IncrementButton async={true} />
+      <IncrementButton async={false} />
+    </div>
+  )
 })
+;(async () => {
+  // createStore returns promise to build initial state
+  const store = await createStore(reducer)
 
-ReactDOM.render(<App />, document.querySelector('main'))
-
+  ReactDOM.render(
+    <Provider store={store}><App /></Provider>,
+    document.querySelector('main')
+  )
+})()
 ```
 
 ## LICENSE
